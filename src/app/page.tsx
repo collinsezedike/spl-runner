@@ -1,5 +1,6 @@
 'use client'
 
+import NextImage from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 
 interface GameObject {
@@ -67,9 +68,15 @@ const DinoGame = () => {
 
 	// Handle screen resizing
 	useEffect(() => {
-		const handleResize = () => setScreenWidth(window.innerWidth)
-		window.addEventListener('resize', handleResize)
-		return () => window.removeEventListener('resize', handleResize)
+		if (typeof window !== 'undefined') {
+			setScreenWidth(window.innerWidth)
+
+			// Handle screen resizing
+			const handleResize = () => setScreenWidth(window.innerWidth)
+			window.addEventListener('resize', handleResize)
+
+			return () => window.removeEventListener('resize', handleResize)
+		}
 	}, [])
 
 	useEffect(() => {
@@ -203,7 +210,7 @@ const DinoGame = () => {
 						width: '100vw',
 					}}
 				>
-					<img
+					<NextImage
 						src="/game-over.png"
 						alt=""
 					/>
@@ -211,7 +218,7 @@ const DinoGame = () => {
 						onClick={restartGame}
 						style={{ border: 'none' }}
 					>
-						<img
+						<NextImage
 							src="/reset.png"
 							alt=""
 						/>
