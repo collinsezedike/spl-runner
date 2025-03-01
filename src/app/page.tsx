@@ -2,6 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+interface GameObject {
+	x: number
+	y: number
+	width: number
+	height: number
+}
+
 const DinoGame = () => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const [gameOver, setGameOver] = useState(false)
@@ -19,7 +26,7 @@ const DinoGame = () => {
 	const dinoY = boardHeight - dinoHeight
 
 	let velocityY = 0
-	const gravity = 0.4
+	const gravity = 0.45
 
 	// Dino Images for Animation
 	const dinoImages = ['/dino-run1.png', '/dino-run2.png']
@@ -27,6 +34,12 @@ const DinoGame = () => {
 	const dinoImg2 = new Image()
 	dinoImg1.src = dinoImages[0]
 	dinoImg2.src = dinoImages[1]
+
+	// Load Road Image
+	const roadImg = new Image()
+	roadImg.src = '/track.png' // Ensure the path is correct
+
+	const road = { x: 0, y: boardHeight - 50, width: screenWidth, height: 50 }
 
 	let currentDinoImage = 0 // Used to alternate between images
 	let frameCount = 0 // Used to slow down image switching
@@ -37,7 +50,6 @@ const DinoGame = () => {
 		'cactus3.png',
 		'big-cactus1.png',
 		'big-cactus2.png',
-		'big-cactus3.png',
 	].map((src) => {
 		const img = new Image()
 		img.src = src
@@ -74,6 +86,8 @@ const DinoGame = () => {
 			animationFrameId.current = requestAnimationFrame(update)
 			context.clearRect(0, 0, screenWidth, boardHeight)
 
+			drawRoad(context) // Draw road first, so dino and cactus appear on top
+
 			velocityY += gravity
 			dino.y = Math.min(dino.y + velocityY, dinoY)
 
@@ -89,7 +103,7 @@ const DinoGame = () => {
 			cactusArray = cactusArray.filter((cactus) => cactus.x + cactus.width > 0)
 
 			if (!gameOverRef.current) {
-				setScore((prev) => prev + 0.01) // Update score only if the game is still running
+				setScore((prev) => prev + 0.001) // Update score only if the game is still running
 			}
 
 			cactusArray.forEach((cactus) => {
@@ -129,7 +143,7 @@ const DinoGame = () => {
 			}
 		}
 
-		function detectCollision(a: any, b: any) {
+		function detectCollision(a: GameObject, b: GameObject): boolean {
 			return (
 				a.x < b.x + b.width && //a's top left corner doesn't reach b's top right corner
 				a.x + a.width > b.x && //a's top right corner passes b's top left corner
@@ -155,17 +169,61 @@ const DinoGame = () => {
 	const restartGame = () => {
 		window.location.reload()
 	}
+	const drawRoad = (context: CanvasRenderingContext2D) => {
+		// Move the road to create scrolling effect
+		road.x -= 8 // Same as cactus speed
+
+		// Reset position when out of view (looping effect)
+		if (road.x <= -screenWidth) {
+			road.x = 0
+		}
+
+		// Draw the road twice to create a seamless loop
+		context.drawImage(roadImg, road.x, road.y, road.width, road.height)
+		context.drawImage(
+			roadImg,
+			road.x + screenWidth,
+			road.y,
+			road.width,
+			road.height
+		)
+	}
 
 	return (
 		<>
 			<p>Score: {score.toFixed(2)}</p>
+			{gameOver && (
+				<div
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						position: 'absolute',
+						top: 50,
+						width: '100vw',
+					}}
+				>
+					<img
+						src="/game-over.png"
+						alt=""
+					/>
+					<button
+						onClick={restartGame}
+						style={{ border: 'none' }}
+					>
+						<img
+							src="/reset.png"
+							alt=""
+						/>
+					</button>
+				</div>
+			)}
 			<canvas
 				ref={canvasRef}
 				width={screenWidth}
-				height={boardHeight - 5}
+				height={boardHeight}
 				id="board"
 			/>
-			{gameOver && <button onClick={restartGame}>Restart Game</button>}
 		</>
 	)
 }
