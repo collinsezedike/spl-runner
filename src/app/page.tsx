@@ -1,7 +1,25 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useWallet } from '@solana/wallet-adapter-react'
+import {
+	Connection,
+	Keypair,
+	PublicKey,
+	clusterApiUrl,
+	SystemProgram,
+	TransactionMessage,
+	VersionedTransaction,
+} from '@solana/web3.js'
+import '@solana/wallet-adapter-react-ui/styles.css'
 
+import {
+	createInitializeMintInstruction,
+	createInitializeNonTransferableMintInstruction,
+	ExtensionType,
+	getMintLen,
+	TOKEN_2022_PROGRAM_ID,
+} from '@solana/spl-token'
 interface GameObject {
 	x: number
 	y: number
@@ -10,6 +28,9 @@ interface GameObject {
 }
 
 const DinoGame = () => {
+	const { publicKey, signTransaction, sendTransaction } = useWallet()
+	const CLUSTER_URL = clusterApiUrl('devnet')
+
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const [gameOver, setGameOver] = useState(false)
 	const [score, setScore] = useState(0)
@@ -170,10 +191,8 @@ const DinoGame = () => {
 		window.location.reload()
 	}
 	const drawRoad = (context: CanvasRenderingContext2D) => {
-		// Move the road to create scrolling effect
-		road.x -= 8 // Same as cactus speed
+		road.x -= 8
 
-		// Reset position when out of view (looping effect)
 		if (road.x <= -screenWidth) {
 			road.x = 0
 		}
@@ -188,6 +207,106 @@ const DinoGame = () => {
 			road.height
 		)
 	}
+
+	const handleClick = async () => {
+		if (!publicKey) {
+			console.error('Wallet not connected!')
+			return
+		}
+
+		const userWalletAddress = publicKey.toBase58()
+
+		try {
+			// Step 1: Fetch Serialized Transaction from Backend
+			// const response = await axios.post('/onchain/create-token', {
+			// 	name: 'tester',
+			// 	symbol: 'TST',
+			// 	description: 'This is a test',
+			// 	image: 'runner',
+			// 	authority: 'none',
+			// 	address: userWalletAddress,
+			// })
+
+			// const serializedTxn = response.data.txn
+			// console.log('Serialized Transaction:', serializedTxn)
+
+			// // Step 2: Deserialize the Transaction
+			// const txBuffer = Buffer.from(serializedTxn, 'base64')
+			// const transaction = VersionedTransaction.deserialize(txBuffer)
+			// console.log('Deserialized Transaction:', transaction)
+
+			// Backend code
+			const connection = new Connection(CLUSTER_URL)
+			const { blockhash } = await connection.getLatestBlockhash()
+
+			const mintKeypair = Keypair.generate()
+			const mint = mintKeypair.publicKey
+			const decimals = 2
+			const mintLen = getMintLen([ExtensionType.NonTransferable])
+			const lamports = await connection.getMinimumBalanceForRentExemption(
+				mintLen
+			)
+
+			const createAccountIxn = SystemProgram.createAccount({
+				fromPubkey: publicKey,
+				newAccountPubkey: mint,
+				space: mintLen,
+				lamports,
+				programId: TOKEN_2022_PROGRAM_ID,
+			})
+
+			const initializeNonTransferableMintIxn =
+				createInitializeNonTransferableMintInstruction(
+					mint,
+					TOKEN_2022_PROGRAM_ID
+				)
+
+			const initializeMintIxn = createInitializeMintInstruction(
+				mint,
+				decimals,
+				publicKey,
+				null,
+				TOKEN_2022_PROGRAM_ID
+			)
+
+			const transferSOLIxn = SystemProgram.transfer({
+				fromPubkey: publicKey,
+				toPubkey: new PublicKey('DqZdf8MQkbJTkghf25cnzJNSmfmdzKseeVHxgL4qJKnw'),
+				lamports: 1000,
+			})
+
+			const message = new TransactionMessage({
+				payerKey: publicKey,
+				recentBlockhash: blockhash,
+				instructions: [
+					// createAccountIxn,
+					// initializeNonTransferableMintIxn,
+					// initializeMintIxn,
+					transferSOLIxn,
+				],
+			}).compileToV0Message()
+
+			const txn = new VersionedTransaction(message)
+
+			// Step 3: Sign the Transaction
+			if (!signTransaction) {
+				console.error('Wallet does not support signing!')
+				return
+			}
+
+			const txnSignature = await sendTransaction(txn, connection)
+			console.log('Transaction:', txn)
+			console.log('Signed Transaction:', txnSignature)
+		} catch (error: any) {
+			console.error('Error processing transaction:', error)
+
+			// Get full logs from transaction failure
+			if (error.logs) {
+				console.error('Transaction Logs:', error.logs)
+			}
+		}
+	}
+
 	if (!startGame) {
 		return (
 			<div
@@ -208,7 +327,7 @@ const DinoGame = () => {
 						border: '1.5px solid black',
 						borderRadius: '15px',
 					}}
-					onClick={() => setStartGame(true)}
+					onClick={handleClick}
 				>
 					start game
 				</button>
