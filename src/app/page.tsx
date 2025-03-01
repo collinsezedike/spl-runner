@@ -154,15 +154,15 @@ const DinoGame = () => {
 				cancelAnimationFrame(animationFrameId.current)
 			}
 		}
-	}, [startGame]) // ✅ Now it only runs when `startGame` is true
+	}, [startGame])
 
 	function detectCollision(a: GameObject, b: GameObject): boolean {
 		return (
-			a.x < b.x + b.width && //a's top left corner doesn't reach b's top right corner
-			a.x + a.width > b.x && //a's top right corner passes b's top left corner
-			a.y < b.y + b.height && //a's top left corner doesn't reach b's bottom left corner
+			a.x < b.x + b.width &&
+			a.x + a.width > b.x &&
+			a.y < b.y + b.height &&
 			a.y + a.height > b.y
-		) //a's bottom left corner passes b's top left corner
+		)
 	}
 
 	// Restart game
@@ -190,10 +190,29 @@ const DinoGame = () => {
 	}
 	if (!startGame) {
 		return (
-			<>
-				<p>game not yet started</p>
-				<button onClick={() => setStartGame(true)}>start game</button>
-			</>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'center',
+					width: '100vw',
+					height: '100vh',
+					justifyContent: 'center',
+				}}
+			>
+				<button
+					style={{
+						fontSize: '2rem',
+						fontWeight: '700',
+						padding: '1rem 1.5rem',
+						border: '1.5px solid black',
+						borderRadius: '15px',
+					}}
+					onClick={() => setStartGame(true)}
+				>
+					start game
+				</button>
+			</div>
 		)
 	}
 	return (
