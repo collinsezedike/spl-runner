@@ -13,6 +13,7 @@ const DinoGame = () => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const [gameOver, setGameOver] = useState(false)
 	const [score, setScore] = useState(0)
+	const [startGame, setStartGame] = useState(false)
 	const gameOverRef = useRef(false) // Tracks game state synchronously
 	const animationFrameId = useRef<number | null>(null)
 
@@ -71,8 +72,9 @@ const DinoGame = () => {
 		window.addEventListener('resize', handleResize)
 		return () => window.removeEventListener('resize', handleResize)
 	}, [])
-
 	useEffect(() => {
+		if (!startGame) return // Ensure the game starts only when `startGame` is true
+
 		const canvas = canvasRef.current
 		if (!canvas) return
 		const context = canvas.getContext('2d')
@@ -81,29 +83,26 @@ const DinoGame = () => {
 		const dino = { x: dinoX, y: dinoY, width: dinoWidth, height: dinoHeight }
 
 		const update = () => {
-			if (gameOverRef.current) return // Stop the game loop when gameOverRef is true
+			if (gameOverRef.current) return
 
 			animationFrameId.current = requestAnimationFrame(update)
 			context.clearRect(0, 0, screenWidth, boardHeight)
-
-			drawRoad(context) // Draw road first, so dino and cactus appear on top
+			drawRoad(context)
 
 			velocityY += gravity
 			dino.y = Math.min(dino.y + velocityY, dinoY)
 
-			// Slow down dino animation (switch image every 10 frames)
 			frameCount++
 			if (frameCount % 10 === 0) {
 				currentDinoImage = (currentDinoImage + 1) % 2
 			}
 			const currentDinoImg = currentDinoImage === 0 ? dinoImg1 : dinoImg2
-
 			context.drawImage(currentDinoImg, dino.x, dino.y, dino.width, dino.height)
 
 			cactusArray = cactusArray.filter((cactus) => cactus.x + cactus.width > 0)
 
 			if (!gameOverRef.current) {
-				setScore((prev) => prev + 0.001) // Update score only if the game is still running
+				setScore((prev) => prev + 0.001)
 			}
 
 			cactusArray.forEach((cactus) => {
@@ -117,8 +116,9 @@ const DinoGame = () => {
 				)
 
 				if (detectCollision(dino, cactus)) {
-					gameOverRef.current = true // Stop future updates immediately
+					gameOverRef.current = true
 					setGameOver(true)
+					setStartGame(false)
 				}
 			})
 		}
@@ -143,15 +143,6 @@ const DinoGame = () => {
 			}
 		}
 
-		function detectCollision(a: GameObject, b: GameObject): boolean {
-			return (
-				a.x < b.x + b.width && //a's top left corner doesn't reach b's top right corner
-				a.x + a.width > b.x && //a's top right corner passes b's top left corner
-				a.y < b.y + b.height && //a's top left corner doesn't reach b's bottom left corner
-				a.y + a.height > b.y
-			) //a's bottom left corner passes b's top left corner
-		}
-
 		document.addEventListener('keydown', moveDino)
 		const cactusInterval = setInterval(placeCactus, 1000)
 		animationFrameId.current = requestAnimationFrame(update)
@@ -160,10 +151,19 @@ const DinoGame = () => {
 			document.removeEventListener('keydown', moveDino)
 			clearInterval(cactusInterval)
 			if (animationFrameId.current) {
-				cancelAnimationFrame(animationFrameId.current) // Stop animation loop on cleanup
+				cancelAnimationFrame(animationFrameId.current)
 			}
 		}
-	}, [])
+	}, [startGame]) // ✅ Now it only runs when `startGame` is true
+
+	function detectCollision(a: GameObject, b: GameObject): boolean {
+		return (
+			a.x < b.x + b.width && //a's top left corner doesn't reach b's top right corner
+			a.x + a.width > b.x && //a's top right corner passes b's top left corner
+			a.y < b.y + b.height && //a's top left corner doesn't reach b's bottom left corner
+			a.y + a.height > b.y
+		) //a's bottom left corner passes b's top left corner
+	}
 
 	// Restart game
 	const restartGame = () => {
@@ -188,7 +188,14 @@ const DinoGame = () => {
 			road.height
 		)
 	}
-
+	if (!startGame) {
+		return (
+			<>
+				<p>game not yet started</p>
+				<button onClick={() => setStartGame(true)}>start game</button>
+			</>
+		)
+	}
 	return (
 		<>
 			<p>Score: {score.toFixed(2)}</p>
