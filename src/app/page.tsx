@@ -311,14 +311,14 @@ const DinoGame = () => {
 	if (!startGame) {
 		return (
 			<div
-			// style={{
-			// 	display: 'flex',
-			// 	flexDirection: 'column',
-			// 	alignItems: 'center',
-			// 	width: '100vw',
-			// 	height: '100vh',
-			// 	justifyContent: 'center',
-			// }}
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					// alignItems: 'center',
+					// 	width: '100vw',
+					height: '100vh',
+					// 	justifyContent: 'center',
+				}}
 			>
 				<WalletMultiButton />
 				<button
@@ -328,6 +328,8 @@ const DinoGame = () => {
 						padding: '1rem 1.5rem',
 						border: '1.5px solid black',
 						borderRadius: '15px',
+						alignSelf: 'center',
+						justifySelf: 'center',
 					}}
 					onClick={handleClick}
 				>
