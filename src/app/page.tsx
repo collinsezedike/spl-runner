@@ -1,6 +1,5 @@
 'use client'
 
-import NextImage from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 
 interface GameObject {
@@ -17,7 +16,7 @@ const DinoGame = () => {
 	const gameOverRef = useRef(false) // Tracks game state synchronously
 	const animationFrameId = useRef<number | null>(null)
 
-	const [screenWidth, setScreenWidth] = useState(0)
+	const [screenWidth, setScreenWidth] = useState(window.innerWidth)
 	const boardHeight = 250
 
 	// Dino properties
@@ -68,15 +67,9 @@ const DinoGame = () => {
 
 	// Handle screen resizing
 	useEffect(() => {
-		if (typeof window !== 'undefined') {
-			setScreenWidth(window.innerWidth)
-
-			// Handle screen resizing
-			const handleResize = () => setScreenWidth(window.innerWidth)
-			window.addEventListener('resize', handleResize)
-
-			return () => window.removeEventListener('resize', handleResize)
-		}
+		const handleResize = () => setScreenWidth(window.innerWidth)
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
 	}, [])
 
 	useEffect(() => {
@@ -172,12 +165,10 @@ const DinoGame = () => {
 		}
 	}, [])
 
+	// Restart game
 	const restartGame = () => {
-		if (typeof window !== 'undefined') {
-			window.location.reload()
-		}
+		window.location.reload()
 	}
-
 	const drawRoad = (context: CanvasRenderingContext2D) => {
 		// Move the road to create scrolling effect
 		road.x -= 8 // Same as cactus speed
@@ -212,7 +203,7 @@ const DinoGame = () => {
 						width: '100vw',
 					}}
 				>
-					<NextImage
+					<img
 						src="/game-over.png"
 						alt=""
 					/>
@@ -220,7 +211,7 @@ const DinoGame = () => {
 						onClick={restartGame}
 						style={{ border: 'none' }}
 					>
-						<NextImage
+						<img
 							src="/reset.png"
 							alt=""
 						/>
