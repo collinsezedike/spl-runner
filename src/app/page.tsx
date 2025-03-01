@@ -17,7 +17,7 @@ const DinoGame = () => {
 	const gameOverRef = useRef(false) // Tracks game state synchronously
 	const animationFrameId = useRef<number | null>(null)
 
-	const [screenWidth, setScreenWidth] = useState(window.innerWidth)
+	const [screenWidth, setScreenWidth] = useState(0)
 	const boardHeight = 250
 
 	// Dino properties
@@ -172,10 +172,12 @@ const DinoGame = () => {
 		}
 	}, [])
 
-	// Restart game
 	const restartGame = () => {
-		window.location.reload()
+		if (typeof window !== 'undefined') {
+			window.location.reload()
+		}
 	}
+
 	const drawRoad = (context: CanvasRenderingContext2D) => {
 		// Move the road to create scrolling effect
 		road.x -= 8 // Same as cactus speed
