@@ -20,6 +20,7 @@ import {
 	getMintLen,
 	TOKEN_2022_PROGRAM_ID,
 } from '@solana/spl-token'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 interface GameObject {
 	x: number
 	y: number
@@ -310,15 +311,16 @@ const DinoGame = () => {
 	if (!startGame) {
 		return (
 			<div
-				style={{
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'center',
-					width: '100vw',
-					height: '100vh',
-					justifyContent: 'center',
-				}}
+			// style={{
+			// 	display: 'flex',
+			// 	flexDirection: 'column',
+			// 	alignItems: 'center',
+			// 	width: '100vw',
+			// 	height: '100vh',
+			// 	justifyContent: 'center',
+			// }}
 			>
+				<WalletMultiButton />
 				<button
 					style={{
 						fontSize: '2rem',

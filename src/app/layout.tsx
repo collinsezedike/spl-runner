@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import WalletContext from '@/contexts/walletContext'
 
 export const metadata: Metadata = {
 	title: 'T-Rex Runner',
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body>{children}</body>
+			<body>
+				<WalletContext>{children}</WalletContext>
+			</body>
 		</html>
 	)
 }
