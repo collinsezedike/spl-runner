@@ -124,7 +124,7 @@ const DinoGame = () => {
 			cactusArray = cactusArray.filter((cactus) => cactus.x + cactus.width > 0)
 
 			if (!gameOverRef.current) {
-				setScore((prev) => prev + 0.001)
+				setScore((prev) => prev + 0.008)
 			}
 
 			cactusArray.forEach((cactus) => {
@@ -140,7 +140,6 @@ const DinoGame = () => {
 				if (detectCollision(dino, cactus)) {
 					gameOverRef.current = true
 					setGameOver(true)
-					setStartGame(false)
 				}
 			})
 		}
@@ -314,6 +313,7 @@ const DinoGame = () => {
 				style={{
 					display: 'flex',
 					flexDirection: 'column',
+					paddingTop: 50,
 					// alignItems: 'center',
 					// 	width: '100vw',
 					height: '100vh',
@@ -328,14 +328,48 @@ const DinoGame = () => {
 						padding: '1rem 1.5rem',
 						border: '1.5px solid black',
 						borderRadius: '15px',
+						marginTop: 200,
+						alignSelf: 'center',
+						justifySelf: 'center',
+					}}
+					onClick={() => setStartGame(true)}
+				>
+					start game
+				</button>
+			</div>
+		)
+	}
+
+	if (gameOver) {
+		return (
+			<>
+				<p
+					style={{
+						fontSize: '2rem',
+						fontWeight: '700',
+						marginTop: 200,
+						alignSelf: 'center',
+						justifySelf: 'center',
+					}}
+				>
+					your accumulated token is {score.toFixed(4)}
+				</p>
+				<button
+					style={{
+						fontSize: '2rem',
+						fontWeight: '700',
+						padding: '1rem 1.5rem',
+						border: '1.5px solid black',
+						borderRadius: '15px',
+						marginTop: 20,
 						alignSelf: 'center',
 						justifySelf: 'center',
 					}}
 					onClick={handleClick}
 				>
-					start game
+					claim token
 				</button>
-			</div>
+			</>
 		)
 	}
 	return (
